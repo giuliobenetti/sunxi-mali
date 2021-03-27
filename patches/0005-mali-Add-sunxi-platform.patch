@@ -15,7 +15,7 @@ Index: r6p2/src/devicedrv/mali/platform/sunxi/sunxi.c
 ===================================================================
 --- /dev/null
 +++ r6p2/src/devicedrv/mali/platform/sunxi/sunxi.c
-@@ -0,0 +1,407 @@
+@@ -0,0 +1,409 @@
 +
 +#include <linux/clk.h>
 +#include <linux/clkdev.h>
@@ -142,6 +142,7 @@ Index: r6p2/src/devicedrv/mali/platform/sunxi/sunxi.c
 +	{ .compatible = "allwinner,sun4i-a10-mali" },
 +	{ .compatible = "allwinner,sun7i-a20-mali" },
 +	{ .compatible = "allwinner,sun8i-h3-mali" },
++	{ .compatible = "allwinner,sun8i-r40-mali" },
 +	{ .compatible = "allwinner,sun50i-a64-mali" },
 +	{ .compatible = "allwinner,sun50i-h5-mali" },
 +	{ /* sentinel */ },
@@ -331,6 +332,7 @@ Index: r6p2/src/devicedrv/mali/platform/sunxi/sunxi.c
 +	}
 +
 +	if (of_device_is_compatible(np, "allwinner,sun8i-h3-mali") ||
++	    of_device_is_compatible(np, "allwinner,sun8i-r40-mali") ||
 +	    of_device_is_compatible(np, "allwinner,sun50i-h5-mali"))
 +		clk_set_rate(mali->core_clk, 576000000);
 +	else if (of_device_is_compatible(np, "allwinner,sun7i-a20-mali") ||
