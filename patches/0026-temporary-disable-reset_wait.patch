@@ -1,0 +1,33 @@
+From 1ff21a2ace0aad8e35a62a6261fa5f940ced39cb Mon Sep 17 00:00:00 2001
+From: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Date: Sat, 27 Mar 2021 12:20:53 +0100
+Subject: [PATCH] temporary disable reset_wait
+
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+---
+ r6p2/src/devicedrv/mali/common/mali_pp.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/r6p2/src/devicedrv/mali/common/mali_pp.c b/r6p2/src/devicedrv/mali/common/mali_pp.c
+index 81f0384..056e33d 100755
+--- a/r6p2/src/devicedrv/mali/common/mali_pp.c
++++ b/r6p2/src/devicedrv/mali/common/mali_pp.c
+@@ -251,6 +251,7 @@ void mali_pp_reset_async(struct mali_pp_core *core)
+ 
+ _mali_osk_errcode_t mali_pp_reset_wait(struct mali_pp_core *core)
+ {
++#if 0
+ 	int i;
+ 	u32 rawstat = 0;
+ 
+@@ -269,6 +270,7 @@ _mali_osk_errcode_t mali_pp_reset_wait(struct mali_pp_core *core)
+ 				  core->hw_core.description, rawstat));
+ 		return _MALI_OSK_ERR_FAULT;
+ 	}
++#endif
+ 
+ 	/* Re-enable interrupts */
+ 	mali_hw_core_register_write(&core->hw_core, MALI200_REG_ADDR_MGMT_INT_CLEAR, MALI200_REG_VAL_IRQ_MASK_ALL);
+-- 
+2.25.1
+
