@@ -1,0 +1,30 @@
+From 57999c7d17fabc53c684304e83571db7f6cfb656 Mon Sep 17 00:00:00 2001
+From: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Date: Fri, 5 Aug 2022 00:20:00 +0200
+Subject: [PATCH] mali: support building against 5.15
+
+Since Linux 5.15 module using DMA_BUF needs to explictly MODULE_IMPORT_NS
+it, so let's add MODULE_IMPORT_NS(DMA_BUF); if Linux version is >= 5.15.0.
+
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+---
+ src/devicedrv/mali/linux/mali_kernel_linux.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/devicedrv/mali/linux/mali_kernel_linux.c b/src/devicedrv/mali/linux/mali_kernel_linux.c
+index 9bfa2bd..27ec709 100755
+--- a/src/devicedrv/mali/linux/mali_kernel_linux.c
++++ b/src/devicedrv/mali/linux/mali_kernel_linux.c
+@@ -1129,6 +1129,9 @@ static int mali_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
+ module_init(mali_module_init);
+ module_exit(mali_module_exit);
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)
++MODULE_IMPORT_NS(DMA_BUF);
++#endif
+ MODULE_LICENSE(MALI_KERNEL_LINUX_LICENSE);
+ MODULE_AUTHOR("ARM Ltd.");
+ MODULE_VERSION(SVN_REV_STRING);
+-- 
+2.34.1
+
