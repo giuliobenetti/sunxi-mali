@@ -1,0 +1,33 @@
+From 7a9cc9701bcc64852226d13e632c57bc56dde15a Mon Sep 17 00:00:00 2001
+From: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Date: Wed, 12 Oct 2022 17:49:32 +0200
+Subject: [PATCH] mali: support building against 6.0.0
+
+Starting from Linux 6.0.0-rc1 register_shrinker() accepts 2 arguments
+instead of one and the second one is a string to log this function calls.
+So let's add "mali" as string if Linux version >= 6.0.0.
+
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+---
+ src/devicedrv/mali/linux/mali_memory_os_alloc.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/devicedrv/mali/linux/mali_memory_os_alloc.c b/src/devicedrv/mali/linux/mali_memory_os_alloc.c
+index 7f229eb..16a5295 100755
+--- a/src/devicedrv/mali/linux/mali_memory_os_alloc.c
++++ b/src/devicedrv/mali/linux/mali_memory_os_alloc.c
+@@ -761,7 +761,11 @@ _mali_osk_errcode_t mali_mem_os_init(void)
+ 	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &dma_attrs_wc);
+ #endif
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
++	register_shrinker(&mali_mem_os_allocator.shrinker, "mali");
++#else
+ 	register_shrinker(&mali_mem_os_allocator.shrinker);
++#endif
+ 
+ 	return _MALI_OSK_ERR_OK;
+ }
+-- 
+2.34.1
+
