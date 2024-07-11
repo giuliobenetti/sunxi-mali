@@ -4,14 +4,14 @@
 r6p2/0006-mali-Allow-devfreq-to-run-without-power-models.patch
 r8p1/0011-mali-support-building-against-4.13.patch
 0012-mali-support-building-against-4.14.patch
-r6p2/0013-mali-support-building-against-4.15.patch
+r8p1/0013-mali-support-building-against-4.15.patch
 r6p2/0014-mali-Make-devfreq-optional.patch
 0015-Enable-parallel-building-passing-variable-to-Makefile.patch
 r6p2/0016-mali-support-building-against-4.16.patch
 r8p1/0017-mali-support-building-against-4.9-later.patch
-0018-mali-support-building-against-4.20.patch
+r6p2/0018-mali-support-building-against-4.20.patch
 0019-mali-support-building-against-5.0.patch
-0020-mali-support-building-against-4.17.patch
+r8p1/0020-mali-support-building-against-4.17.patch
 0021-mali-support-building-against-5.3.patch
 r6p2/0022-mali-support-building-against-5.6.patch
 0023-mali-support-building-against-5.7.patch
