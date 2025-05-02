@@ -1,0 +1,57 @@
+From 6ccf77ef004aa3e6cce95d889351151fe1cfc2de Mon Sep 17 00:00:00 2001
+From: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Date: Fri, 2 May 2025 23:31:13 +0200
+Subject: [PATCH] Fix build with Linux 6.11.0
+
+With Linux commit:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=0edb555a65d1ef047a9805051c36922b52a38a9d
+platform_driver remove() doesn't have int return anymore, so let's change
+remove() prototype and keep return 0; only if Linux version is < 6.11.0
+
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+---
+ src/devicedrv/mali/linux/mali_kernel_linux.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/src/devicedrv/mali/linux/mali_kernel_linux.c b/src/devicedrv/mali/linux/mali_kernel_linux.c
+index 8630960..72dffb3 100755
+--- a/src/devicedrv/mali/linux/mali_kernel_linux.c
++++ b/src/devicedrv/mali/linux/mali_kernel_linux.c
+@@ -186,7 +186,11 @@ static int mali_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
+ #endif
+ 
+ static int mali_probe(struct platform_device *pdev);
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0))
++static void mali_remove(struct platform_device *pdev);
++#else
+ static int mali_remove(struct platform_device *pdev);
++#endif
+ 
+ static int mali_driver_suspend_scheduler(struct device *dev);
+ static int mali_driver_resume_scheduler(struct device *dev);
+@@ -642,7 +646,11 @@ clock_prepare_failed:
+ 	return -EFAULT;
+ }
+ 
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0))
++static void mali_remove(struct platform_device *pdev)
++#else
+ static int mali_remove(struct platform_device *pdev)
++#endif
+ {
+ #ifdef CONFIG_MALI_DEVFREQ
+ 	struct mali_device *mdev = dev_get_drvdata(&pdev->dev);
+@@ -680,7 +688,10 @@ static int mali_remove(struct platform_device *pdev)
+ 	mali_platform_device_deinit(mali_platform_device);
+ #endif
+ 	mali_platform_device = NULL;
++
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0))
+ 	return 0;
++#endif
+ }
+ 
+ static int mali_miscdevice_register(struct platform_device *pdev)
+-- 
+2.39.5
+

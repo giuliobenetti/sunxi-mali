@@ -1,0 +1,46 @@
+From 1cb46f592a1a08213b2d85dc3a7b7bd14304f55e Mon Sep 17 00:00:00 2001
+From: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Date: Fri, 2 May 2025 23:10:02 +0200
+Subject: [PATCH] Fix build failure with Linux 6.7.0
+
+With this commit:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c42d50aefd17a6bad3ed617769
+shrinker changed API other than adding infrastructure for dynamically
+allocating shrinker. So let's call correct APIs according to Linux version
+6.7.0+.
+
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+---
+ src/devicedrv/mali/linux/mali_memory_os_alloc.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/devicedrv/mali/linux/mali_memory_os_alloc.c b/src/devicedrv/mali/linux/mali_memory_os_alloc.c
+index 658253e..3d0c84f 100755
+--- a/src/devicedrv/mali/linux/mali_memory_os_alloc.c
++++ b/src/devicedrv/mali/linux/mali_memory_os_alloc.c
+@@ -778,7 +778,9 @@ _mali_osk_errcode_t mali_mem_os_init(void)
+ 	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &dma_attrs_wc);
+ #endif
+ 
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
++	shrinker_register(&mali_mem_os_allocator.shrinker);
++#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+ 	register_shrinker(&mali_mem_os_allocator.shrinker, "mali");
+ #else
+ 	register_shrinker(&mali_mem_os_allocator.shrinker);
+@@ -790,7 +792,11 @@ _mali_osk_errcode_t mali_mem_os_init(void)
+ void mali_mem_os_term(void)
+ {
+ 	struct mali_page_node *m_page, *m_tmp;
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
++	shrinker_free(&mali_mem_os_allocator.shrinker);
++#else
+ 	unregister_shrinker(&mali_mem_os_allocator.shrinker);
++#endif
+ 	cancel_delayed_work_sync(&mali_mem_os_allocator.timed_shrinker);
+ 
+ 	if (NULL != mali_mem_os_allocator.wq) {
+-- 
+2.39.5
+

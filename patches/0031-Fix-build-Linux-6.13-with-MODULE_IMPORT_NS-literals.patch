@@ -1,0 +1,33 @@
+From 1d35b1ad9ff1f1045120aff46cdf689a684c2cdf Mon Sep 17 00:00:00 2001
+From: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Date: Fri, 2 May 2025 23:18:44 +0200
+Subject: [PATCH] Fix build Linux 6.13 with MODULE_IMPORT_NS() literals
+
+With commit:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=cdd30ebb1b9f36159d66f088b61aee264e649d7a
+MODULE_IMPORT_NS() and MODULE_EXPORT_NS() require literals to work, so
+let's add a case for Linux 6.13+ with DMA_BUF as literals.
+
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+---
+ src/devicedrv/mali/linux/mali_kernel_linux.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/devicedrv/mali/linux/mali_kernel_linux.c b/src/devicedrv/mali/linux/mali_kernel_linux.c
+index f803181..8630960 100755
+--- a/src/devicedrv/mali/linux/mali_kernel_linux.c
++++ b/src/devicedrv/mali/linux/mali_kernel_linux.c
+@@ -1147,7 +1147,9 @@ int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+ module_init(mali_module_init);
+ module_exit(mali_module_exit);
+ 
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
++MODULE_IMPORT_NS("DMA_BUF");
++#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)
+ MODULE_IMPORT_NS(DMA_BUF);
+ #endif
+ MODULE_LICENSE(MALI_KERNEL_LINUX_LICENSE);
+-- 
+2.39.5
+
