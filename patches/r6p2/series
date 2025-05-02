@@ -28,3 +28,4 @@ r6p2/0024-mali-support-building-against-5.9.patch
 0029-Fix-build-failure-with-Linux-6.7.0.patch
 0030-Fix-build-with-Linux-6.11.0.patch
 0031-Fix-build-Linux-6.13-with-MODULE_IMPORT_NS-literals.patch
+0032-Fix-build-with-Wint-conversion-enabled.patch
