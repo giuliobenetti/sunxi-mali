@@ -22,3 +22,4 @@ r6p0/0024-mali-support-building-against-5.9.patch
 0026-mali-support-building-against-5.15.patch
 0027-mali-support-building-against-6.0.0.patch
 0028-Fix-build-with-Linux-6.3.patch
+0029-Fix-build-failure-with-Linux-6.7.0.patch
