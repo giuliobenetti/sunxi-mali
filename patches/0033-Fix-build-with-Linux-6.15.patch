@@ -1,0 +1,44 @@
+From d5931821b18ef89ea406dc9de1e3fa3251c42ffc Mon Sep 17 00:00:00 2001
+From: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Date: Wed, 16 Jul 2025 22:03:54 +0200
+Subject: [PATCH] Fix build with Linux 6.15
+
+Commit:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=8fa7292fee5c5240402371ea89ab285ec856c916
+drops del_timer{_sync}() in favor of timer_delete{_sync}() so let's
+backport locally function del_timer{_sync}() when Linux version is 6.15.0
+or later.
+
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+---
+ src/devicedrv/mali/common/mali_kernel_common.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/src/devicedrv/mali/common/mali_kernel_common.h b/src/devicedrv/mali/common/mali_kernel_common.h
+index 9bae265..c8df955 100755
+--- a/src/devicedrv/mali/common/mali_kernel_common.h
++++ b/src/devicedrv/mali/common/mali_kernel_common.h
+@@ -12,6 +12,20 @@
+ #define __MALI_KERNEL_COMMON_H__
+ 
+ #include "mali_osk.h"
++#include <linux/timer.h>
++#include <linux/version.h>
++
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0))
++static inline int del_timer(struct timer_list *timer)
++{
++	return timer_delete(timer);
++}
++
++static inline int del_timer_sync(struct timer_list *timer)
++{
++	return timer_delete_sync(timer);
++}
++#endif
+ 
+ /* Make sure debug is defined when it should be */
+ #ifndef DEBUG
+-- 
+2.39.5
+
