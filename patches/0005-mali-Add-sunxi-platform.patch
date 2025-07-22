@@ -15,7 +15,7 @@ Index: r6p2/src/devicedrv/mali/platform/sunxi/sunxi.c
 ===================================================================
 --- /dev/null
 +++ r6p2/src/devicedrv/mali/platform/sunxi/sunxi.c
-@@ -0,0 +1,407 @@
+@@ -0,0 +1,408 @@
 +
 +#include <linux/clk.h>
 +#include <linux/clkdev.h>
@@ -30,6 +30,7 @@ Index: r6p2/src/devicedrv/mali/platform/sunxi/sunxi.c
 +#include <linux/of_device.h>
 +#include <linux/of_irq.h>
 +#include <linux/of_reserved_mem.h>
++#include <linux/platform_device.h>
 +#include <linux/pm_runtime.h>
 +#include <linux/reset.h>
 +#include <linux/slab.h>
