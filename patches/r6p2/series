@@ -30,3 +30,4 @@ r6p2/0024-mali-support-building-against-5.9.patch
 0031-Fix-build-Linux-6.13-with-MODULE_IMPORT_NS-literals.patch
 0032-Fix-build-with-Wint-conversion-enabled.patch
 0033-Fix-build-with-Linux-6.15.patch
+0034-mali-Avoid-splitting-lines-across-multiple-printf-calls.patch
