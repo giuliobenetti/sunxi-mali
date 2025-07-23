@@ -1,6 +1,6 @@
-From 1cb46f592a1a08213b2d85dc3a7b7bd14304f55e Mon Sep 17 00:00:00 2001
-From: Giulio Benetti <giulio.benetti@benettiengineering.com>
-Date: Fri, 2 May 2025 23:10:02 +0200
+From 9b3a2e3aee545f7447ef0225063c968403b40c99 Mon Sep 17 00:00:00 2001
+From: Jonathan Liu <net147@gmail.com>
+Date: Wed, 23 Jul 2025 23:43:47 +1000
 Subject: [PATCH] Fix build failure with Linux 6.7.0
 
 With this commit:
@@ -10,37 +10,92 @@ allocating shrinker. So let's call correct APIs according to Linux version
 6.7.0+.
 
 Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Signed-off-by: Jonathan Liu <net147@gmail.com>
 ---
- src/devicedrv/mali/linux/mali_memory_os_alloc.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ .../mali/linux/mali_memory_os_alloc.c         | 23 ++++++++++++++++++-
+ src/devicedrv/mali/linux/mali_memory_types.h  |  5 ++++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/src/devicedrv/mali/linux/mali_memory_os_alloc.c b/src/devicedrv/mali/linux/mali_memory_os_alloc.c
-index 658253e..3d0c84f 100755
+index 8c09578..76ec8cf 100755
 --- a/src/devicedrv/mali/linux/mali_memory_os_alloc.c
 +++ b/src/devicedrv/mali/linux/mali_memory_os_alloc.c
-@@ -778,7 +778,9 @@ _mali_osk_errcode_t mali_mem_os_init(void)
+@@ -59,6 +59,7 @@ struct mali_mem_os_allocator mali_mem_os_allocator = {
+ 	.allocated_pages = ATOMIC_INIT(0),
+ 	.allocation_limit = 0,
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 7, 0)
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
+ 	.shrinker.shrink = mali_mem_os_shrink,
+ #else
+@@ -66,6 +67,7 @@ struct mali_mem_os_allocator mali_mem_os_allocator = {
+ 	.shrinker.scan_objects = mali_mem_os_shrink,
+ #endif
+ 	.shrinker.seeks = DEFAULT_SEEKS,
++#endif
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
+ 	.timed_shrinker = __DELAYED_WORK_INITIALIZER(mali_mem_os_allocator.timed_shrinker, mali_mem_os_trim_pool, TIMER_DEFERRABLE),
+ #elif LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 38)
+@@ -771,7 +773,19 @@ _mali_osk_errcode_t mali_mem_os_init(void)
  	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &dma_attrs_wc);
  #endif
  
 -#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
 +#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
-+	shrinker_register(&mali_mem_os_allocator.shrinker);
++	mali_mem_os_allocator.shrinker = shrinker_alloc(0, "mali");;
++
++	if (NULL == mali_mem_os_allocator.shrinker) {
++		destroy_workqueue(mali_mem_os_allocator.wq);
++		mali_mem_os_allocator.wq = NULL;
++		return _MALI_OSK_ERR_NOMEM;
++	}
++
++	mali_mem_os_allocator.shrinker->count_objects = mali_mem_os_shrink_count;
++	mali_mem_os_allocator.shrinker->scan_objects = mali_mem_os_shrink;
++	shrinker_register(mali_mem_os_allocator.shrinker);
 +#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
  	register_shrinker(&mali_mem_os_allocator.shrinker, "mali");
  #else
  	register_shrinker(&mali_mem_os_allocator.shrinker);
-@@ -790,7 +792,11 @@ _mali_osk_errcode_t mali_mem_os_init(void)
+@@ -783,7 +797,14 @@ _mali_osk_errcode_t mali_mem_os_init(void)
  void mali_mem_os_term(void)
  {
  	struct mali_page_node *m_page, *m_tmp;
 +#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
-+	shrinker_free(&mali_mem_os_allocator.shrinker);
++	if (NULL != mali_mem_os_allocator.shrinker) {
++		shrinker_free(mali_mem_os_allocator.shrinker);
++		mali_mem_os_allocator.shrinker = NULL;
++	}
 +#else
  	unregister_shrinker(&mali_mem_os_allocator.shrinker);
 +#endif
  	cancel_delayed_work_sync(&mali_mem_os_allocator.timed_shrinker);
  
  	if (NULL != mali_mem_os_allocator.wq) {
+diff --git a/src/devicedrv/mali/linux/mali_memory_types.h b/src/devicedrv/mali/linux/mali_memory_types.h
+index 82af8fe..f94925e 100755
+--- a/src/devicedrv/mali/linux/mali_memory_types.h
++++ b/src/devicedrv/mali/linux/mali_memory_types.h
+@@ -12,6 +12,7 @@
+ #define __MALI_MEMORY_TYPES_H__
+ 
+ #include <linux/mm.h>
++#include <linux/version.h>
+ 
+ #if defined(CONFIG_MALI400_UMP)
+ #include "ump_kernel_interface.h"
+@@ -152,7 +153,11 @@ struct mali_mem_os_allocator {
+ 	atomic_t allocated_pages;
+ 	size_t allocation_limit;
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
++	struct shrinker *shrinker;
++#else
+ 	struct shrinker shrinker;
++#endif
+ 	struct delayed_work timed_shrinker;
+ 	struct workqueue_struct *wq;
+ };
 -- 
-2.39.5
+2.50.1
 
